@@ -28,8 +28,8 @@ Program testit
   Real( wp ), Dimension( 1:3, 1:3 ) :: gvecs_dir
   Real( wp ), Dimension( :, : ), Allocatable :: gvecs_inv
 
-  Integer, Parameter :: nq = 1000
-!!$  Integer, Parameter :: nq = 10
+!!$  Integer, Parameter :: nq = 1000
+  Integer, Parameter :: nq = 10
   Real( wp ), Dimension( 1:3, 1:nq ) :: rq
   Real( wp ), Dimension(      1:nq ) ::  q
 

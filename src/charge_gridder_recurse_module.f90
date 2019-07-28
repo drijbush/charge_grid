@@ -17,7 +17,8 @@ Module charge_gridder_recurse_module
     Integer, Dimension( 1:3 ), Parameter :: n_unroll = [ 4, 1, 1 ]
 
   Type, Extends(  charge_gridder ), Public :: charge_gridder_recurse
-     Real( wp ), Dimension( 0:2 * ( Maxval( n_unroll ) ** 2 ), 1:3, 1:3 ) :: Exp_dd ! Enough terms for unrolling by 4
+     ! Array to hold the terms of the form Exp(-alpha*n*dr.dr) that we need
+     Real( wp ), Dimension( 0:2 * ( Maxval( n_unroll ) ** 2 ), 1:3, 1:3 ) :: Exp_dd 
    Contains
      Procedure, NoPass, Private :: get_cache_block      => cache_block_recurse
      Procedure,         Private :: grid_charge_in_block => grid_block_recurse
@@ -74,7 +75,7 @@ Contains
 
     Real( wp ), Dimension( 1:3 ) :: r3, r32, r321, r
 
-    Real( wp ), Dimension( 0:n_unroll( 1 ) - 1 ) :: Exp_rr_1, Exp_rd_1
+    Real( wp ), Dimension( 0:n_unroll( 1 ) - 1, 0:n_unroll( 2 ) - 1 ) :: Exp_rr_1, Exp_rd_1
 
     Real( wp ) :: qnorm
     Real( wp ) :: Exp_1dd_1, Exp_2dd_1
@@ -90,7 +91,7 @@ Contains
     Integer, Dimension( 1:3 ) :: ilo, ihi, n_left, n_top
 
     Integer :: i1, i2, i3
-    Integer :: i1_unroll
+    Integer :: i1_unroll, i2_unroll
 
     !!!! NEED TO WORK THROUGH ORIGIN PROPERLY !!!!
 
@@ -129,26 +130,31 @@ Contains
        Exp0_rr_2        = Exp0_rr_3
        Exp0_rd_2        = Exp0_rd_2_start
        Exp0_rd_12_start = Exp0_rd_1_start
+!!$       Do i2 = ilo( 2 ), ihi( 2 )
        Do i2 = ilo( 2 ), ihi( 2 )
-          Exp_rr_1( 0 ) = Exp0_rr_2
-          Exp_rd_1( 0 ) = Exp0_rd_12_start
+          Exp_rr_1( 0, 0 ) = Exp0_rr_2
+          Exp_rd_1( 0, 0 ) = Exp0_rd_12_start
           ! Calculate The subsequent unrolling loops by stepping one at a time
           Do i1_unroll = 1, n_unroll( 1 ) - 1
-             Exp_rr_1( i1_unroll ) = Exp_rr_1( i1_unroll - 1 ) * Exp_rd_1( i1_unroll - 1 ) * Exp_1dd_1
-             Exp_rd_1( i1_unroll ) = Exp_rd_1( i1_unroll - 1 ) * Exp_2dd_1
+             Exp_rr_1( i1_unroll, 0 ) = Exp_rr_1( i1_unroll - 1, 0 ) * Exp_rd_1( i1_unroll - 1, 0 ) * Exp_1dd_1
+             Exp_rd_1( i1_unroll, 0 ) = Exp_rd_1( i1_unroll - 1, 0 ) * Exp_2dd_1
           End Do
           ! Now update the rd steps to move the appropriate number of unrolling steps
           ! at a time
           Exp_rd_1 = Exp_rd_1 ** n_unroll( 1 )
+          ! Update the 2nd vector quatites while the power above is being evaluated
           Exp0_rr_2 = Exp0_rr_2 * Exp0_rd_2 * Exp_1dd_2
           Exp0_rd_2 = Exp0_rd_2 * Exp_2dd_2
           Exp0_rd_12_start = Exp0_rd_12_start * Exp_2dd_12
           Do i1 = ilo( 1 ), n_top( 1 ), n_unroll( 1 )
-             grid( i1:i1 + n_unroll( 1 ) - 1, i2, i3 ) = grid( i1:i1 + n_unroll( 1 ) - 1, i2, i3 ) + Exp_rr_1
+             grid( i1:i1 + n_unroll( 1 ) - 1, i2:i2 + n_unroll( 2 ) - 1, i3 ) = &
+                  grid( i1:i1 + n_unroll( 1 ) - 1, i2:i2 + n_unroll( 2 ) - 1, i3 ) + Exp_rr_1
              Exp_rr_1 = Exp_rr_1 * Exp_rd_1 * Exp_update_rr_1
              Exp_rd_1 = Exp_rd_1 * Exp_update_rd_1
           End Do
-          grid( n_top( 1 ) + 1:ihi( 1 ), i2, i3 ) = grid( n_top( 1 ) + 1:ihi( 1 ), i2, i3 ) + Exp_rr_1( 0:n_left( 1 ) - 1 )
+          grid( n_top( 1 ) + 1:ihi( 1 ), i2:i2 + n_unroll( 2 ) - 1, i3 ) = &
+               grid( n_top( 1 ) + 1:ihi( 1 ), i2:i2 + n_unroll( 2 ) - 1, i3 ) + &
+               Exp_rr_1( 0:n_left( 1 ) - 1, : )
        End Do
        Exp0_rr_3 = Exp0_rr_3 * Exp0_rd_3 * Exp_1dd_3
        Exp0_rd_3 = Exp0_rd_3 * Exp_2dd_3
