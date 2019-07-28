@@ -8,9 +8,9 @@ Program testit
 
   Implicit None
 
-  Integer, Dimension( 1:3 ), Parameter :: ng = [ 105, 107, 106 ]
+!!$  Integer, Dimension( 1:3 ), Parameter :: ng = [ 105, 107, 106 ]
 !!$  Integer, Dimension( 1:3 ), Parameter :: ng = [ 205, 207, 206 ]
-!!$  Integer, Dimension( 1:3 ), Parameter :: ng = [ 5, 7, 6 ]
+  Integer, Dimension( 1:3 ), Parameter :: ng = [ 5, 7, 6 ]
   Integer, Dimension( 1:3 ), Parameter :: proc_coords = [ 1, 3, 2 ]
   Integer, Dimension( 1:3 ), Parameter :: gs = ng * proc_coords
   Integer, Dimension( 1:3 ), Parameter :: gf = gs + ng - 1
@@ -29,7 +29,8 @@ Program testit
   Real( wp ), Dimension( :, : ), Allocatable :: gvecs_inv
 
 !!$  Integer, Parameter :: nq = 1000
-  Integer, Parameter :: nq = 10
+!!$  Integer, Parameter :: nq = 10
+  Integer, Parameter :: nq = 1
   Real( wp ), Dimension( 1:3, 1:nq ) :: rq
   Real( wp ), Dimension(      1:nq ) ::  q
 
@@ -140,14 +141,14 @@ Program testit
   Write( *, * ) 'Max error for calculate ', Maxval( Abs( grid_calc    - grid_ref ) ) 
   Write( *, * ) 'Max error for recurse   ', Maxval( Abs( grid_recurse - grid_ref ) ) 
 
-!!$  Do i3 = gs( 3 ), gf( 3 )
-!!$     Do i2 = gs( 2 ), gf( 2 )
-!!$        Do i1 = gs( 1 ), gf( 1 )
-!!$           Write( *, * ) i1, i2, i3, grid_ref( i1, i2, i3 ), grid_recurse( i1, i2, i3 ), &
-!!$                grid_ref( i1, i2, i3 ) - grid_recurse( i1, i2, i3 )
-!!$        End Do
-!!$     End Do
-!!$  End Do
+  Do i3 = gs( 3 ), gf( 3 )
+     Do i2 = gs( 2 ), gf( 2 )
+        Do i1 = gs( 1 ), gf( 1 )
+           Write( *, * ) i1, i2, i3, grid_ref( i1, i2, i3 ), grid_recurse( i1, i2, i3 ), &
+                grid_ref( i1, i2, i3 ) - grid_recurse( i1, i2, i3 )
+        End Do
+     End Do
+  End Do
 
 Contains
 
