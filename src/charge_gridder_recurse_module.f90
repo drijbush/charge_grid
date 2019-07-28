@@ -130,22 +130,38 @@ Contains
        Exp0_rr_2        = Exp0_rr_3
        Exp0_rd_2        = Exp0_rd_2_start
        Exp0_rd_12_start = Exp0_rd_1_start
-!!$       Do i2 = ilo( 2 ), ihi( 2 )
        Do i2 = ilo( 2 ), ihi( 2 )
+!!$       Do i2 = ilo( 2 ), n_top( 2 ), n_unroll( 2 )
           Exp_rr_1( 0, 0 ) = Exp0_rr_2
           Exp_rd_1( 0, 0 ) = Exp0_rd_12_start
-          ! Calculate The subsequent unrolling loops by stepping one at a time
+          ! Calculate The subsequent unrolling loops by first stepping one x at a time
           Do i1_unroll = 1, n_unroll( 1 ) - 1
              Exp_rr_1( i1_unroll, 0 ) = Exp_rr_1( i1_unroll - 1, 0 ) * Exp_rd_1( i1_unroll - 1, 0 ) * Exp_1dd_1
              Exp_rd_1( i1_unroll, 0 ) = Exp_rd_1( i1_unroll - 1, 0 ) * Exp_2dd_1
           End Do
-          ! Now update the rd steps to move the appropriate number of unrolling steps
-          ! at a time
-          Exp_rd_1 = Exp_rd_1 ** n_unroll( 1 )
+          ! Now step each element 1 y at a time filling in the rest of the elements
           ! Update the 2nd vector quatites while the power above is being evaluated
           Exp0_rr_2 = Exp0_rr_2 * Exp0_rd_2 * Exp_1dd_2
           Exp0_rd_2 = Exp0_rd_2 * Exp_2dd_2
           Exp0_rd_12_start = Exp0_rd_12_start * Exp_2dd_12
+          Do i2_unroll = 1, n_unroll( 2 ) - 1
+             Do i1_unroll = 0, n_unroll( 1 ) - 1
+                Exp_rr_1( i1_unroll, i2_unroll ) = &
+                     Exp_rr_1( i1_unroll, i2_unroll - 1 ) * Exp_rd_1( i1_unroll, i2_unroll - 1 ) * Exp_1dd_2
+                Exp_rd_1( i1_unroll, i2_unroll ) = Exp_rd_1( i1_unroll, i2_unroll - 1 ) * Exp_2dd_2
+             End Do
+          ! Update the 2nd vector quatites while the power above is being evaluated
+             Exp0_rr_2 = Exp0_rr_2 * Exp0_rd_2 * Exp_1dd_2
+             Exp0_rd_2 = Exp0_rd_2 * Exp_2dd_2
+             Exp0_rd_12_start = Exp0_rd_12_start * Exp_2dd_12
+          End Do
+          ! Now update the rd steps to move the appropriate number of unrolling steps
+          ! at a time
+          Exp_rd_1 = Exp_rd_1 ** n_unroll( 1 )
+!!$          ! Update the 2nd vector quatites while the power above is being evaluated
+!!$          Exp0_rr_2 = Exp0_rr_2 * Exp0_rd_2 * Exp_1dd_2
+!!$          Exp0_rd_2 = Exp0_rd_2 * Exp_2dd_2
+!!$          Exp0_rd_12_start = Exp0_rd_12_start * Exp_2dd_12
           Do i1 = ilo( 1 ), n_top( 1 ), n_unroll( 1 )
              grid( i1:i1 + n_unroll( 1 ) - 1, i2:i2 + n_unroll( 2 ) - 1, i3 ) = &
                   grid( i1:i1 + n_unroll( 1 ) - 1, i2:i2 + n_unroll( 2 ) - 1, i3 ) + Exp_rr_1
