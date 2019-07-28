@@ -15,7 +15,7 @@ Module charge_gridder_recurse_module
   ! Unrolling factors for loops in charge gridding - only innermost (i.e. 1) currently supported
 !!$    Integer, Dimension( 1:3 ), Parameter :: n_unroll = [ 2, 1, 1 ]
 !!$    Integer, Dimension( 1:3 ), Parameter :: n_unroll = [ 4, 1, 1 ]
-    Integer, Dimension( 1:3 ), Parameter :: n_unroll = [ 4, 2, 1 ]
+    Integer, Dimension( 1:3 ), Parameter :: n_unroll = [ 2, 2, 1 ]
 
   Type, Extends(  charge_gridder ), Public :: charge_gridder_recurse
      ! Array to hold the terms of the form Exp(-alpha*n*dr.dr) that we need
@@ -119,6 +119,10 @@ Contains
     n_left = Mod( ihi - ilo + 1, n_unroll )
     n_left = Merge( n_unroll, n_left, n_left == 0 )
     n_top = ihi - n_left 
+
+    Write( *, * ) ilo
+    Write( *, * ) ihi
+    Write( *, * ) n_top
 
     r3 = ilo( 3 ) * gvecs_dir( :, 3 )
     r32 = r3 + ilo( 2 ) * gvecs_dir( :, 2 )

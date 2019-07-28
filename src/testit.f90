@@ -72,7 +72,7 @@ Program testit
      rq( :, i ) = r_frac( 1 ) * gvecs_dir( :, 1 ) + &
           r_frac( 2 ) * gvecs_dir( :, 2 ) + &
           r_frac( 3 ) * gvecs_dir( :, 3 )
-     q( i ) = Mod( i, 2 )
+     q( i ) = 2 * Mod( i, 2 ) - 1
   End Do
 
   Write( *, * ) 'Done set pos'
